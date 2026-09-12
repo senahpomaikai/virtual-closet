@@ -113,19 +113,19 @@ function shade(hex: string, amount: number): string {
 export function silhouette(type: string, category: string, colorHex: string): string {
   const shape = shapeFor(type, category)
   const ink = contrastInk(colorHex)
-  const outline = shade(colorHex, 0.62)
+  const outline = shade(colorHex, 0.74)
   const detail = shape.detail ?? []
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 260" width="200" height="260">
-<rect width="200" height="260" fill="#e7e2d8"/>
-<rect x="8" y="8" width="184" height="244" fill="#f1ece2"/>
+<rect width="200" height="260" fill="#efeae3"/>
+<rect x="6" y="6" width="188" height="248" fill="#faf7f2"/>
 ${shape.paths
-  .map((d) => `<path d="${d}" fill="${colorHex}" stroke="${outline}" stroke-width="2.5" stroke-linejoin="round"/>`)
+  .map((d) => `<path d="${d}" fill="${colorHex}" stroke="${outline}" stroke-width="1.8" stroke-linejoin="round"/>`)
   .join('\n')}
 ${detail
   .map(
     (d) =>
-      `<path d="${d}" fill="none" stroke="${ink}" stroke-opacity="0.28" stroke-width="2" stroke-linecap="round"/>`,
+      `<path d="${d}" fill="none" stroke="${ink}" stroke-opacity="0.22" stroke-width="2" stroke-linecap="round"/>`,
   )
   .join('\n')}
 </svg>`

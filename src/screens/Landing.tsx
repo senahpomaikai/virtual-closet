@@ -7,10 +7,10 @@ interface Props {
 
 /**
  * Screen 1. The headline is the one thing a first-time viewer must register, so it
- * gets the largest type on the screen, the only accent fill, and the top of the
- * reading order. The background animation sits at 16% opacity behind everything and
- * freezes entirely under prefers-reduced-motion — it illustrates the capability, it
- * does not compete for attention.
+ * gets the largest type on the screen, the only italic, and the top of the reading
+ * order. The background animation sits at 9% opacity behind everything and freezes
+ * entirely under prefers-reduced-motion — it illustrates the capability, it does not
+ * compete for attention.
  */
 export default function Landing({ onNavigate, itemCount }: Props) {
   return (
@@ -57,24 +57,20 @@ function BackdropStage() {
   return (
     <div className="landing__stage" aria-hidden="true">
       <svg viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice">
-        {/* Keep the art off the text column, where the small copy lives. */}
-        <clipPath id="stage-right">
-          <rect x="560" y="0" width="640" height="700" />
-        </clipPath>
         {/* State A — scan a garment into attributes */}
         <g className="stage-layer stage-layer--a">
           <g transform="translate(720 130) scale(1.55)">
             <path
               d="M70 40 L44 52 L28 152 L54 162 L64 104 L64 224 L136 224 L136 104 L146 162 L172 152 L156 52 L130 40 C120 54 80 54 70 40 Z"
               fill="none"
-              stroke="#12110f"
-              strokeWidth="3"
+              stroke="#2b2522"
+              strokeWidth="2"
             />
             <g className="scanline">
-              <rect x="10" y="30" width="180" height="4" fill="#ff4a1c" />
+              <rect x="10" y="30" width="180" height="3" fill="#a8766c" />
             </g>
           </g>
-          <g stroke="#12110f" strokeWidth="3" fill="none" transform="translate(560 205)">
+          <g stroke="#2b2522" strokeWidth="2" fill="none" transform="translate(560 205)">
             <rect x="150" y="250" width="230" height="48" />
             <rect x="150" y="320" width="180" height="48" />
             <rect x="150" y="390" width="260" height="48" />
@@ -85,8 +81,8 @@ function BackdropStage() {
         </g>
 
         {/* State B — the closet it accumulates into */}
-        <g className="stage-layer stage-layer--b" clipPath="url(#stage-right)">
-          <g className="carousel" stroke="#12110f" strokeWidth="3" fill="none">
+        <g className="stage-layer stage-layer--b">
+          <g className="carousel" stroke="#2b2522" strokeWidth="2" fill="none">
             {Array.from({ length: 12 }).map((_, index) => (
               <g key={index} transform={`translate(${index * 160} 0)`}>
                 <rect x="60" y={index % 2 ? 210 : 160} width="120" height={index % 2 ? 260 : 320} />
