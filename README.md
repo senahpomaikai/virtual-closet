@@ -4,12 +4,12 @@ A virtual closet cataloging mock-up. Photograph an outfit, get it broken into pi
 with guessed attributes, confirm or correct them, and browse the growing closet as a
 grid with cost-per-wear tracking.
 
-- **Live demo:** https://d1gd0knf722j7p.cloudfront.net/virtual-closet/
+- **Live demo:** https://is551.senahpark.com/virtual-closet/
 - **Repository:** https://github.com/senahpomaikai/virtual-closet
 
 > Built mobile-first. Open the live demo on a phone, or narrow a desktop browser, to
-> see it as intended. The camera on Screen 2 needs HTTPS, which the CloudFront URL
-> above provides; `localhost` also works during development.
+> see it as intended. The camera on Screen 2 needs HTTPS, which the live URL provides;
+> `localhost` also works during development.
 
 ---
 
@@ -178,37 +178,61 @@ a low-resolution crop, at the cost of no dependency and no model download. Color
 one attribute that can honestly be measured, is computed from the actual pixels in
 CIE Lab.
 
-**The spec assumed the app could be hosted at `senahpark.com/is551/`.** That domain
-resolves to a CloudFront distribution outside the AWS account in use, so no path can
-be attached to it from there. The build now uses a relative asset base, which means
-the same output works at any path, and it is served from its own distribution over
-HTTPS — which the camera requires.
+**The spec assumed the app could be hosted at `senahpark.com/is551/`.** The apex
+domain resolves to a CloudFront distribution outside the AWS account in use, so no
+path can be attached to it from there. The app lives at `is551.senahpark.com` instead,
+on its own distribution with its own certificate, which leaves the existing site
+untouched. The build uses a relative asset base, so the same output would work at any
+path if it ever moves again. HTTPS is not cosmetic here: the camera does not run
+without it.
 
 ### Before and after
 
-Landing screen, initial build versus revised. To see them side by side:
+Both states shot at the same browser width, so the difference is the design rather
+than the window. Before is the initial commit
+[`f43db0b`](https://github.com/senahpomaikai/virtual-closet/commit/f43db0bcf2995ebfde149a238133f83d07c9cc40);
+after is the merged revision branch. To reproduce the left column, run
+`git checkout f43db0b && npm run dev`, then return with `git checkout main`.
 
-```bash
-git stash && git checkout f43db0b && npm run dev
-```
+#### Screen 1 — Landing
 
-Return with `git checkout main`.
+| Before | After |
+|---|---|
+| ![Landing screen before revision](img/before-screen-1.png) | ![Landing screen after revision](img/after-screen-1.png) |
 
-**Before** ([`f43db0b`](https://github.com/senahpomaikai/virtual-closet/commit/f43db0bcf2995ebfde149a238133f83d07c9cc40)):
-a 1180px desktop layout. Headline in heavy sans, with "catalogs itself" reversed out
-of a solid orange block that takes the eye first. Hard 2.5px black borders and solid
-black offset shadows on both buttons. Background animation at 16% opacity running
-behind the subhead.
+The headline is the same sentence in both, which makes the treatment the only
+variable. Before, "catalogs itself" is reversed out of a solid orange block, and the
+eye goes to the rectangle rather than the clause — the accent became the figure and
+the sentence the ground. After, the same clause is italic serif in a muted clay, so
+the emphasis lives inside the sentence. Note also what happened to weight: two hard
+black-bordered buttons with solid offset shadows became one ink pill and one outlined
+pill, which reads the priority faster with less ink on the page.
 
-**After** ([`8985f3a`](https://github.com/senahpomaikai/virtual-closet/commit/8985f3abd04da9a23668fc3b060470772a277ce6)):
-a phone-width column. Headline in serif with the same clause set as italic clay, so
-the emphasis sits inside the sentence instead of on top of it. Pill buttons, hairline
-borders, diffuse shadows, ink for the primary rather than accent. Animation at 9%,
-clear of the copy.
+#### Screen 2 — Capture & Log
 
-The same contrast on Screen 3 is starker: nineteen garments four-across on a
-1180px page, versus two-across on a phone with brand names, cost per wear, and a
-filter block that reads as one region.
+| Before | After |
+|---|---|
+| ![Capture screen before revision](img/before-screen-2.png) | ![Capture screen after revision](img/after-screen-2.png) |
+
+Before, the viewfinder hangs off the left edge while the copy above it runs the full
+width, and the only thing the screen can do is cut a photo into three bands. After,
+the frame sits on the centre axis — aiming a camera is a centring act — and a mode
+switch sits directly above it, because what you are photographing decides how the
+frame gets cut. That control is the visible half of the accessories work: "one item
+close up" is what makes a handbag or a necklace loggable at all.
+
+#### Screen 3 — Virtual Closet
+
+| Before | After |
+|---|---|
+| ![Closet screen before revision](img/before-screen-3.png) | ![Closet screen after revision](img/after-screen-3.png) |
+
+The starkest pair. Before, four garments across a wide page, each one small, inside
+heavy black frames that draw more attention than the clothes they contain. The stat
+strip is four cells wide and the filter panel spans the full width, so the eye has no
+column to follow. After, two across in a phone-width column, stats folded two by two,
+and every border reduced to a hairline. The garments are now the most saturated thing
+in view, which is the whole point of a screen whose job is recognising what you own.
 
 ---
 
@@ -239,11 +263,16 @@ npm run dev
 ## Deployment
 
 Static build published to `s3://is-551/virtual-closet/` and served through CloudFront
-with Origin Access Control, so the bucket itself stays private. A viewer function maps
-directory URLs onto `index.html`. A GitHub Actions workflow builds, syncs, and
-invalidates on every push to `main`; it needs `AWS_ACCESS_KEY_ID` and
-`AWS_SECRET_ACCESS_KEY` repo secrets from a scoped IAM user whose policy is checked in
-at [`docs/deploy-iam-policy.json`](docs/deploy-iam-policy.json).
+at `is551.senahpark.com`, with Origin Access Control so the bucket itself stays
+private. The subdomain has its own ACM certificate in `us-east-1` and A and AAAA alias
+records in the existing Route 53 zone, which leaves the apex domain and the site
+already on it untouched. A CloudFront viewer function maps directory URLs onto
+`index.html`, since S3 has no concept of an index document.
+
+A GitHub Actions workflow builds, syncs, and invalidates on every push to `main`. It
+needs `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` repo secrets from a scoped IAM
+user whose policy is checked in at
+[`docs/deploy-iam-policy.json`](docs/deploy-iam-policy.json).
 
 ## Commit History Note
 
