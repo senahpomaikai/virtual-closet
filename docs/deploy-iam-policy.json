@@ -1,0 +1,26 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ListOnlyThisPrefix",
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::is-551",
+      "Condition": {
+        "StringLike": { "s3:prefix": ["virtual-closet", "virtual-closet/*"] }
+      }
+    },
+    {
+      "Sid": "WriteOnlyThisPrefix",
+      "Effect": "Allow",
+      "Action": ["s3:PutObject", "s3:GetObject", "s3:DeleteObject"],
+      "Resource": "arn:aws:s3:::is-551/virtual-closet/*"
+    },
+    {
+      "Sid": "InvalidateOnlyThisDistribution",
+      "Effect": "Allow",
+      "Action": "cloudfront:CreateInvalidation",
+      "Resource": "arn:aws:cloudfront::724772067314:distribution/EXVKNEI606DCF"
+    }
+  ]
+}
