@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ClosetItem, DetectedPiece, Screen } from '../types'
 import { hexForColorName } from '../lib/color'
 import { composeName, guessAttributes } from '../lib/guess'
-import { BANDS, captureFrame, segment, type FrameSource } from '../lib/segment'
+import { silhouette } from '../lib/silhouette'
+import { bandsFor, captureFrame, segment, type CaptureMode, type FrameSource } from '../lib/segment'
 import { findMatch, newId } from '../lib/closet'
 import TopBar from '../components/TopBar'
 import PieceCard from '../components/PieceCard'
@@ -31,10 +32,16 @@ export default function Capture({ items, onCommit, onNavigate }: Props) {
   const [frame, setFrame] = useState<string | null>(null)
   const [pieces, setPieces] = useState<DetectedPiece[]>([])
   const [receipt, setReceipt] = useState<Receipt | null>(null)
+  const [mode, setMode] = useState<CaptureMode>('outfit')
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const photoCountRef = useRef(0)
+  // The pipeline runs from an image load callback, so it reads the mode from a ref
+  // rather than closing over a stale render's state.
+  const modeRef = useRef<CaptureMode>('outfit')
+  modeRef.current = mode
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((track) => track.stop())
@@ -83,19 +90,20 @@ export default function Capture({ items, onCommit, onNavigate }: Props) {
       const canvas = captureFrame(source)
       setFrame(canvas.toDataURL('image/jpeg', 0.85))
 
-      const crops = segment(canvas)
+      const crops = segment(canvas, modeRef.current)
       if (crops.length === 0) {
         setError('Nothing distinguishable in the frame. Try more light, or step back for a fuller shot.')
         return
       }
 
       setError(null)
-      setPieces(
-        crops.map((crop) => {
+      const photoNumber = photoCountRef.current + 1
+      photoCountRef.current = photoNumber
+      const fresh = crops.map((crop) => {
           const guess = guessAttributes(crop.region, crop.colorHex)
           const match = findMatch({ category: guess.category, colorHex: crop.colorHex }, items)
           return {
-            id: `piece-${crop.region}-${Date.now()}`,
+            id: `piece-${crop.region}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
             image: crop.image,
             colorHex: crop.colorHex,
             guessed: { type: true, color: true, material: true, size: true },
@@ -111,10 +119,15 @@ export default function Capture({ items, onCommit, onNavigate }: Props) {
             price: 0,
             match,
             matchDecision: null,
-            dismissed: false,
+            // A bare head fills the head band exactly as a hat does, so those
+            // arrive set aside rather than guessing that the user wore one.
+            dismissed: crop.region === 'head',
+            manual: false,
+            source: `Photo ${photoNumber} · ${crop.label}`,
           }
-        }),
-      )
+        })
+
+      setPieces((current) => [...current, ...fresh])
       setStage('review')
     },
     [items],
@@ -164,6 +177,9 @@ export default function Capture({ items, onCommit, onNavigate }: Props) {
         if (!next.nameEdited) {
           next.name = composeName(next.color, next.material, next.type)
         }
+        if (next.manual) {
+          next.image = silhouette(next.type, next.category, next.colorHex)
+        }
 
         // Category or colour changed means the previous match may no longer hold.
         if (patch.category || patch.color) {
@@ -173,6 +189,36 @@ export default function Capture({ items, onCommit, onNavigate }: Props) {
         return next
       }),
     )
+  }, [items])
+
+  const addManualPiece = useCallback(() => {
+    const colorHex = hexForColorName('Black')
+    const type = 'Tote bag'
+    const material = 'Leather'
+    setPieces((current) => [
+      ...current,
+      {
+        id: `piece-manual-${Date.now()}`,
+        image: silhouette(type, 'Accessories', colorHex),
+        colorHex,
+        guessed: { type: false, color: false, material: false, size: false },
+        name: composeName('Black', material, type),
+        nameEdited: false,
+        brand: '',
+        purchaseDate: '',
+        category: 'Accessories',
+        type,
+        color: 'Black',
+        material,
+        size: 'One size',
+        price: 0,
+        match: findMatch({ category: 'Accessories', colorHex }, items),
+        matchDecision: null,
+        dismissed: false,
+        manual: true,
+        source: 'Added by hand',
+      },
+    ])
   }, [items])
 
   const decideMatch = useCallback((id: string, samePiece: boolean) => {
@@ -223,10 +269,17 @@ export default function Capture({ items, onCommit, onNavigate }: Props) {
     setStage('saved')
   }, [items, onCommit, pieces])
 
-  const retake = useCallback(() => {
+  const startOver = useCallback(() => {
     setPieces([])
     setFrame(null)
     setReceipt(null)
+    setError(null)
+    photoCountRef.current = 0
+    setStage('idle')
+  }, [])
+
+  /** Back to the camera without losing what the first photo already found. */
+  const addAnotherPhoto = useCallback(() => {
     setError(null)
     setStage('idle')
   }, [])
@@ -246,7 +299,9 @@ export default function Capture({ items, onCommit, onNavigate }: Props) {
             <p>
               {stage === 'review'
                 ? 'Colour is measured off your photo. Type, material and size are suggestions — correct anything that is wrong, then save.'
-                : 'Frame a full-length shot or lay the outfit out flat. The three dashed bands are the pieces the app will cut out: top, bottom, shoes.'}
+                : mode === 'single'
+                  ? 'Fill the frame with one thing — a bag, a hat, a necklace, anything a full-length shot would lose. The whole frame is logged as a single piece.'
+                  : 'Frame a full-length shot or lay the outfit out flat. The dashed bands are the pieces the app will cut out. Take as many photos as you need.'}
             </p>
           </div>
         )}
@@ -259,11 +314,28 @@ export default function Capture({ items, onCommit, onNavigate }: Props) {
 
         {(stage === 'idle' || stage === 'starting' || stage === 'live') && (
           <div className="stage">
+            <div className="modes" role="group" aria-label="What are you photographing?">
+              <button
+                className="mode"
+                aria-pressed={mode === 'outfit'}
+                onClick={() => setMode('outfit')}
+              >
+                A whole outfit
+              </button>
+              <button
+                className="mode"
+                aria-pressed={mode === 'single'}
+                onClick={() => setMode('single')}
+              >
+                One item close up
+              </button>
+            </div>
+
             <div className="viewfinder">
               {stage === 'live' ? (
                 <>
                   <video ref={videoRef} playsInline muted />
-                  <Guides />
+                  <Guides mode={mode} />
                 </>
               ) : (
                 <div className="viewfinder__idle">
@@ -304,6 +376,11 @@ export default function Capture({ items, onCommit, onNavigate }: Props) {
                   event.target.value = ''
                 }}
               />
+              {pieces.length > 0 && (
+                <button className="btn btn--ghost" onClick={() => setStage('review')}>
+                  Back to the {pieces.length} {pieces.length === 1 ? 'piece' : 'pieces'} found so far
+                </button>
+              )}
             </div>
             <p className="capture__note">
               Camera access needs HTTPS or localhost. The photo option is here for laptops whose
@@ -316,12 +393,24 @@ export default function Capture({ items, onCommit, onNavigate }: Props) {
           <div className="stage">
             {frame && (
               <div className="viewfinder">
-                <img src={frame} alt="The outfit you captured" />
-                <Guides />
+                <img src={frame} alt="The most recent photo you captured" />
+                <Guides mode={modeRef.current} />
               </div>
             )}
 
-            <p className="eyebrow">{pieces.length} pieces detected</p>
+            <div className="review__head">
+              <p className="eyebrow">
+                {pieces.length} {pieces.length === 1 ? 'piece' : 'pieces'} in this batch
+              </p>
+              <div className="review__add">
+                <button className="btn" onClick={addAnotherPhoto}>
+                  Add another photo
+                </button>
+                <button className="btn" onClick={addManualPiece}>
+                  Add an item it missed
+                </button>
+              </div>
+            </div>
 
             <div className="pieces">
               {pieces.map((piece) => (
@@ -343,8 +432,8 @@ export default function Capture({ items, onCommit, onNavigate }: Props) {
               >
                 Save to closet
               </button>
-              <button className="btn" onClick={retake}>
-                Retake
+              <button className="btn" onClick={startOver}>
+                Start over
               </button>
               <span className="saveline__count">
                 {undecided.length > 0
@@ -362,8 +451,9 @@ export default function Capture({ items, onCommit, onNavigate }: Props) {
             <ul>
               {receipt.added > 0 && (
                 <li>
-                  {receipt.added} new {receipt.added === 1 ? 'piece' : 'pieces'} added, each starting
-                  at one wear.
+                  {receipt.added === 1
+                    ? '1 new piece added, starting at one wear.'
+                    : `${receipt.added} new pieces added, each starting at one wear.`}
                 </li>
               )}
               {receipt.worn.map((name, index) => (
@@ -374,7 +464,7 @@ export default function Capture({ items, onCommit, onNavigate }: Props) {
               <button className="btn btn--lg btn--primary" onClick={() => onNavigate('closet')}>
                 View My Closet
               </button>
-              <button className="btn" onClick={retake}>
+              <button className="btn" onClick={startOver}>
                 Log another outfit
               </button>
               <button className="btn btn--ghost" onClick={() => onNavigate('landing')}>
@@ -389,10 +479,10 @@ export default function Capture({ items, onCommit, onNavigate }: Props) {
 }
 
 /** The dashed bands, positioned from the same numbers segment() cuts on. */
-function Guides() {
+function Guides({ mode }: { mode: CaptureMode }) {
   return (
     <div className="guides" aria-hidden="true">
-      {BANDS.map((band) => (
+      {bandsFor(mode).map((band) => (
         <div
           key={band.region}
           className="guides__band"

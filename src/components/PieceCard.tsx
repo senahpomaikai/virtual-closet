@@ -1,6 +1,6 @@
 import { CATEGORIES, type Category, type DetectedPiece } from '../types'
 import { COLOR_NAMES, contrastInk } from '../lib/color'
-import { MATERIALS, sizesForCategory } from '../lib/guess'
+import { ACCESSORY_TYPES, MATERIALS, sizesForCategory } from '../lib/guess'
 
 interface Props {
   piece: DetectedPiece
@@ -23,10 +23,10 @@ export default function PieceCard({ piece, onChange, onDecideMatch, onToggleDism
       <div className="piece__head">
         <img className="piece__thumb" src={piece.image} alt={`Detected ${piece.name}`} />
         <div className="piece__headings">
-          <span className="piece__region">Detected piece</span>
+          <span className="piece__region">{piece.source}</span>
           <h3 className="piece__name">{piece.name}</h3>
           <button className="btn btn--ghost" onClick={onToggleDismiss}>
-            {piece.dismissed ? 'Put back' : 'Not a garment — remove'}
+            {piece.dismissed ? 'Put this one back' : 'Not a garment — remove'}
           </button>
         </div>
       </div>
@@ -114,9 +114,15 @@ export default function PieceCard({ piece, onChange, onDecideMatch, onToggleDism
             </span>
             <input
               value={piece.type}
+              list={piece.category === 'Accessories' ? 'accessory-types' : undefined}
               onChange={(event) => onChange({ type: event.target.value })}
               placeholder="e.g. Crewneck sweater"
             />
+            <datalist id="accessory-types">
+              {ACCESSORY_TYPES.map((type) => (
+                <option key={type} value={type} />
+              ))}
+            </datalist>
           </label>
 
           <div className="field">

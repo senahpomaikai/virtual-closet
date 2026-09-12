@@ -64,6 +64,10 @@ export interface DetectedPiece {
   matchDecision: boolean | null
   /** User dropped this piece from the batch. */
   dismissed: boolean
+  /** Added by hand rather than cut from a photo, so it has no crop to show. */
+  manual: boolean
+  /** Which band of which photo this came from, shown as a label in the review. */
+  source: string
 }
 
 export type Screen = 'landing' | 'capture' | 'closet'

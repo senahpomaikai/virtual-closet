@@ -405,6 +405,28 @@ img {
   line-height: 1.5;
 }
 
+/* What is being photographed decides how the frame gets cut, so the choice sits
+   directly above the viewfinder rather than buried in the review. */
+.modes {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.mode {
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: var(--card);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.mode[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--paper);
+}
+
 /* Framing guides: the bands drawn here are the exact bands the app cuts on. */
 .guides {
   position: absolute;
@@ -459,6 +481,26 @@ img {
 
 .alert--error {
   border-left-color: var(--accent);
+}
+
+/* Batch controls sit above the cards: another photo, or a piece no camera can see. */
+.review__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.review__add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.review__add .btn {
+  padding: 0.55rem 0.9rem;
+  font-size: 0.88rem;
 }
 
 /* Review: one card per detected piece, grouped by a shared common region. */
