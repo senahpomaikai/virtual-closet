@@ -9,10 +9,16 @@ grid with cost-per-wear tracking.
 > revised — they require reflection on the actual live app, not the plan.
 
 ## Live Demo
-TODO — `https://senahpark.com/is551/{app-name}/`
+https://d1gd0knf722j7p.cloudfront.net/virtual-closet/
+
+Served over HTTPS from CloudFront, which the webcam capture on Screen 2 requires.
+Not yet on `senahpark.com/is551/virtual-closet/`: the apex already resolves to a
+CloudFront distribution outside this AWS account, so a path cannot be attached to
+it from here. Moving it there later needs no rebuild — Vite is configured with a
+relative base, so the same `dist/` works at any path.
 
 ## Repository
-TODO — link if this README lives somewhere other than the repo root
+https://github.com/senahpomaikai/virtual-closet
 
 ---
 
