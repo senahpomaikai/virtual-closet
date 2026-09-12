@@ -370,6 +370,9 @@ img {
   aspect-ratio: 3 / 4;
   max-width: 520px;
   width: 100%;
+  /* Centred: the viewfinder is what the user aims with, so it sits on the axis of
+     the screen rather than hanging off the left edge. */
+  margin-inline: auto;
   overflow: hidden;
 }
 
@@ -431,6 +434,7 @@ img {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
   gap: 1rem;
 }
 
@@ -439,7 +443,8 @@ img {
   color: var(--ink-soft);
   line-height: 1.5;
   max-width: 46ch;
-  margin: 0;
+  margin: 0 auto;
+  text-align: center;
 }
 
 .alert {
@@ -606,6 +611,7 @@ img {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
   gap: 1rem;
   padding-top: 0.5rem;
 }
