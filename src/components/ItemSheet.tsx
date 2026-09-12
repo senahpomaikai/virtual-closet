@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { costPerWear, formatMoney, type ClosetItem } from '../types'
+import { costPerWear, formatMoney, formatPurchaseDate, type ClosetItem } from '../types'
 
 interface Props {
   item: ClosetItem
@@ -30,7 +30,7 @@ export default function ItemSheet({ item, onClose, onLogWear }: Props) {
           <img src={item.image} alt={item.name} />
           <div>
             <h3 className="sheet__title">{item.name}</h3>
-            <p className="eyebrow">{item.category}</p>
+            <p className="eyebrow">{item.brand || item.category}</p>
           </div>
         </div>
 
@@ -58,6 +58,14 @@ export default function ItemSheet({ item, onClose, onLogWear }: Props) {
           <div>
             <dt>Times worn</dt>
             <dd>{item.numWear}</dd>
+          </div>
+          <div>
+            <dt>Brand</dt>
+            <dd>{item.brand || 'Not recorded'}</dd>
+          </div>
+          <div>
+            <dt>Purchased</dt>
+            <dd>{formatPurchaseDate(item.purchaseDate) ?? 'Not recorded'}</dd>
           </div>
         </dl>
 

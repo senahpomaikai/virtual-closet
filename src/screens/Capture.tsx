@@ -100,6 +100,9 @@ export default function Capture({ items, onCommit, onNavigate }: Props) {
             colorHex: crop.colorHex,
             guessed: { type: true, color: true, material: true, size: true },
             name: composeName(guess.color, guess.material, guess.type),
+            nameEdited: false,
+            brand: '',
+            purchaseDate: '',
             category: guess.category,
             type: guess.type,
             color: guess.color,
@@ -158,7 +161,9 @@ export default function Capture({ items, onCommit, onNavigate }: Props) {
         if (patch.color && patch.color !== piece.color) {
           next.colorHex = hexForColorName(patch.color)
         }
-        next.name = composeName(next.color, next.material, next.type)
+        if (!next.nameEdited) {
+          next.name = composeName(next.color, next.material, next.type)
+        }
 
         // Category or colour changed means the previous match may no longer hold.
         if (patch.category || patch.color) {
@@ -194,7 +199,9 @@ export default function Capture({ items, onCommit, onNavigate }: Props) {
       }
       added.push({
         id: newId(),
-        name: piece.name,
+        name: piece.name.trim() || composeName(piece.color, piece.material, piece.type),
+        brand: piece.brand.trim(),
+        purchaseDate: piece.purchaseDate,
         category: piece.category,
         type: piece.type,
         color: piece.color,

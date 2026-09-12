@@ -63,6 +63,36 @@ export default function PieceCard({ piece, onChange, onDecideMatch, onToggleDism
       {!piece.dismissed && piece.matchDecision !== true && (
         <>
           <label className="field">
+            <span className="field__label">Name this piece</span>
+            <input
+              value={piece.name}
+              onChange={(event) => onChange({ name: event.target.value, nameEdited: true })}
+              placeholder="e.g. The good black blazer"
+            />
+          </label>
+
+          <div className="field--row">
+            <label className="field">
+              <span className="field__label">Brand</span>
+              <input
+                value={piece.brand}
+                onChange={(event) => onChange({ brand: event.target.value })}
+                placeholder="Optional"
+              />
+            </label>
+
+            <label className="field">
+              <span className="field__label">Date purchased</span>
+              <input
+                type="date"
+                value={piece.purchaseDate}
+                max={new Date().toISOString().slice(0, 10)}
+                onChange={(event) => onChange({ purchaseDate: event.target.value })}
+              />
+            </label>
+          </div>
+
+          <label className="field">
             <span className="field__label">
               Category <span className="chip chip--guess">from framing</span>
             </span>

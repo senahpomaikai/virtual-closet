@@ -4,7 +4,9 @@ import type { ClosetItem } from '../types'
  * Session persistence only — no backend, no auth. localStorage is a convenience so a
  * refresh mid-user-test does not wipe what the participant just logged.
  */
-const KEY = 'virtual-closet/items/v1'
+// Bumped when the item shape changes, so a stale closet is reseeded rather than
+// rendered with missing fields.
+const KEY = 'virtual-closet/items/v2'
 
 export function loadItems(): ClosetItem[] | null {
   try {
