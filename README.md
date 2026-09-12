@@ -182,9 +182,13 @@ CIE Lab.
 domain resolves to a CloudFront distribution outside the AWS account in use, so no
 path can be attached to it from there. The app lives at `is551.senahpark.com` instead,
 on its own distribution with its own certificate, which leaves the existing site
-untouched. The build uses a relative asset base, so the same output would work at any
-path if it ever moves again. HTTPS is not cosmetic here: the camera does not run
-without it.
+untouched. HTTPS is not cosmetic here: the camera does not run without it.
+
+Serving from a subpath then produced its own bug. The build originally used a relative
+asset base, which looks portable and works at `/virtual-closet/` but renders a blank
+page at `/virtual-closet` with no trailing slash: the browser resolves `./assets/…`
+against the domain root and both files 404. Vite's `base` is now the absolute deploy
+path, so asset URLs no longer depend on how the page URL happens to be spelled.
 
 ### Before and after
 
@@ -241,7 +245,8 @@ in view, which is the whole point of a screen whose job is recognising what you 
 - Vite + React + TypeScript
 - Client-side only. No backend, no auth, no accounts
 - No runtime dependencies beyond React, and no client-side router — screens switch on
-  in-app state, which avoids deep-link rewriting on S3
+  in-app state, which avoids deep-link rewriting on S3 and leaves no router basename to
+  keep in step with the deploy path
 - Color is measured from captured pixels via canvas `getImageData`, converted to CIE
   Lab for naming and for the duplicate-detection distance. Type is inferred from
   position in the frame. Material and size are labelled placeholders, never presented
