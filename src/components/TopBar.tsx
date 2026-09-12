@@ -10,15 +10,17 @@ interface Props {
 export default function TopBar({ title, onHome, children }: Props) {
   return (
     <header className="topbar">
-      <button className="topbar__home" onClick={onHome}>
-        <span className="topbar__arrow" aria-hidden="true">
-          ←
-        </span>
-        Home
-      </button>
-      <h2 className="topbar__title">{title}</h2>
-      <span className="topbar__spacer" />
-      {children}
+      <div className="topbar__inner">
+        <button className="topbar__home" onClick={onHome}>
+          <span className="topbar__arrow" aria-hidden="true">
+            ←
+          </span>
+          Home
+        </button>
+        <h2 className="topbar__title">{title}</h2>
+        <span className="topbar__spacer" />
+        {children}
+      </div>
     </header>
   )
 }

@@ -16,7 +16,7 @@ export default function ItemTile({ item, tall, justLogged, onOpen }: Props) {
       <img src={item.image} alt={item.name} />
       <span className="tile__body">
         <span className="tile__meta">
-          {justLogged ? 'Just logged' : item.category}
+          {justLogged ? 'Just logged' : item.brand || item.category}
         </span>
         <span className="tile__name">{item.name}</span>
         <span className="tile__metrics">

@@ -3,9 +3,13 @@ import type { RegionKey } from './guess'
 
 /**
  * Simulated segmentation. Real garment segmentation is out of scope, so the frame
- * is split into three horizontal bands and each band is treated as one piece. The
- * live camera view draws these same bands as framing guides, so the split the user
- * sees is the split the app actually performs — no hidden magic to be confused by.
+ * is split into horizontal bands and each band is treated as one piece. The live
+ * camera view draws these same bands as framing guides, so the split the user sees
+ * is the split the app actually performs — no hidden magic to be confused by.
+ *
+ * The head band catches hats and hair accessories, but a bare head fills it just as
+ * well and nothing here can tell the difference. So head pieces arrive in the review
+ * already set aside: no noise when there is no hat, one click to put one back.
  */
 
 export interface Band {
@@ -18,9 +22,17 @@ export interface Band {
   right: number
 }
 
+export type CaptureMode = 'outfit' | 'single'
+
+/** Close-up: the whole frame is one piece, so there is nothing to cut. */
+export const SINGLE_BANDS: Band[] = [
+  { region: 'single', label: 'One item', top: 0.05, bottom: 0.95, left: 0.08, right: 0.92 },
+]
+
 export const BANDS: Band[] = [
-  { region: 'upper', label: 'Top', top: 0.06, bottom: 0.44, left: 0.2, right: 0.8 },
-  { region: 'lower', label: 'Bottom', top: 0.44, bottom: 0.78, left: 0.22, right: 0.78 },
+  { region: 'head', label: 'Head', top: 0.01, bottom: 0.14, left: 0.36, right: 0.64 },
+  { region: 'upper', label: 'Top', top: 0.14, bottom: 0.46, left: 0.2, right: 0.8 },
+  { region: 'lower', label: 'Bottom', top: 0.46, bottom: 0.78, left: 0.22, right: 0.78 },
   { region: 'feet', label: 'Shoes', top: 0.78, bottom: 0.99, left: 0.28, right: 0.72 },
 ]
 
@@ -59,10 +71,14 @@ export function captureFrame({ element, width, height, mirror }: FrameSource): H
   return canvas
 }
 
-export function segment(frame: HTMLCanvasElement): Crop[] {
+export function bandsFor(mode: CaptureMode): Band[] {
+  return mode === 'single' ? SINGLE_BANDS : BANDS
+}
+
+export function segment(frame: HTMLCanvasElement, mode: CaptureMode = 'outfit'): Crop[] {
   const crops: Crop[] = []
 
-  for (const band of BANDS) {
+  for (const band of bandsFor(mode)) {
     const sx = Math.round(band.left * frame.width)
     const sy = Math.round(band.top * frame.height)
     const sw = Math.max(1, Math.round((band.right - band.left) * frame.width))

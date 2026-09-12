@@ -18,7 +18,7 @@ import { colorDistance, nameColor } from './color'
  * Swapping in a real classifier later means changing guessType() and nothing else.
  */
 
-export type RegionKey = 'upper' | 'lower' | 'feet'
+export type RegionKey = 'head' | 'upper' | 'lower' | 'feet' | 'single'
 
 export const MATERIALS = [
   'Cotton',
@@ -43,6 +43,20 @@ interface RegionPrior {
 }
 
 const PRIORS: Record<RegionKey, RegionPrior> = {
+  // A close-up fills the frame with one thing. Position says nothing then, so the
+  // guess falls back to the most common reason someone shoots a close-up at all.
+  single: {
+    category: 'Accessories',
+    types: ['Shoulder bag', 'Tote bag', 'Necklace', 'Scarf', 'Belt', 'Sunglasses'],
+    materials: ['Leather', 'Suede', 'Cotton', 'Silk', 'Nylon'],
+    sizes: ['One size'],
+  },
+  head: {
+    category: 'Accessories',
+    types: ['Baseball cap', 'Beanie', 'Wide-brim hat', 'Headband', 'Hair clip'],
+    materials: ['Cotton', 'Wool', 'Straw', 'Leather'],
+    sizes: ['One size'],
+  },
   upper: {
     category: 'Tops',
     types: ['T-shirt', 'Crewneck sweater', 'Button-down shirt', 'Knit cardigan', 'Blouse'],
@@ -70,8 +84,32 @@ export function categoryForRegion(region: RegionKey): Category {
 export function sizesForCategory(category: Category): string[] {
   if (category === 'Bottoms') return PRIORS.lower.sizes
   if (category === 'Shoes') return PRIORS.feet.sizes
+  if (category === 'Accessories') return ['One size', 'S', 'M', 'L']
   return PRIORS.upper.sizes
 }
+
+/**
+ * Everything a camera pointed at an outfit tends to miss: jewellery too small to
+ * resolve, a bag held out of frame, a belt under a coat. Offered as suggestions on
+ * the manual add, not as anything the app claims to have seen.
+ */
+export const ACCESSORY_TYPES = [
+  'Tote bag',
+  'Shoulder bag',
+  'Backpack',
+  'Belt',
+  'Scarf',
+  'Necklace',
+  'Earrings',
+  'Bracelet',
+  'Watch',
+  'Rings',
+  'Sunglasses',
+  'Hair clip',
+  'Headband',
+  'Baseball cap',
+  'Beanie',
+] as const
 
 /** Cheap deterministic hash so repeat captures of the same colour suggest the same fibre. */
 function hash(seed: string): number {
@@ -124,6 +162,9 @@ function guessType(region: RegionKey, colorHex: string): string {
   if (region === 'feet') {
     if (veryLight) return 'Leather sneakers'
     if (veryDark) return 'Ankle boots'
+    return prior.types[hash(colorHex) % prior.types.length]
+  }
+  if (region === 'head' || region === 'single') {
     return prior.types[hash(colorHex) % prior.types.length]
   }
   if (veryDark) return 'Crewneck sweater'
