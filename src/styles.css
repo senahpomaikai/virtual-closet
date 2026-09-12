@@ -5,6 +5,10 @@
    --------------------------------------------------------------------------- */
 
 :root {
+  /* One column, phone width, centred on anything larger. The app is used standing in
+     front of a closet with a phone in hand; the desktop view is the same app, not a
+     wider one. */
+  --column: 620px;
   --paper: #f2eee3;
   --paper-deep: #e7e2d5;
   --card: #fbf9f4;
@@ -85,7 +89,8 @@ img {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.95rem 1.4rem;
+  min-height: 44px;
+  padding: 0.8rem 1.3rem;
   border: var(--rule) solid var(--ink);
   background: var(--card);
   font-weight: 700;
@@ -149,12 +154,17 @@ img {
   position: sticky;
   top: 0;
   z-index: 20;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.85rem clamp(1rem, 4vw, 2.5rem);
   background: var(--paper);
   border-bottom: var(--rule) solid var(--ink);
+}
+
+.topbar__inner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 1rem;
+  max-width: var(--column);
+  margin: 0 auto;
 }
 
 .topbar__home {
@@ -190,9 +200,17 @@ img {
   flex: 1;
 }
 
+/* On a phone the screen's own h1 sits a few pixels below this, so the bar's title is
+   pure repetition competing for a scarce row. */
+@media (max-width: 480px) {
+  .topbar__title {
+    display: none;
+  }
+}
+
 .page {
-  padding: clamp(1.25rem, 4vw, 2.5rem);
-  max-width: 1180px;
+  padding: 1.25rem 1rem 3rem;
+  max-width: var(--column);
   margin: 0 auto;
 }
 
@@ -264,9 +282,9 @@ img {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: clamp(1.75rem, 4vw, 2.75rem);
-  padding: clamp(1.5rem, 5vw, 4rem);
-  max-width: 1180px;
+  gap: clamp(1.5rem, 5vw, 2.25rem);
+  padding: 2rem 1.25rem;
+  max-width: var(--column);
   margin: 0 auto;
   width: 100%;
 }
@@ -295,8 +313,8 @@ img {
 .landing__headline {
   margin: 0;
   max-width: 20ch;
-  font-size: clamp(2.9rem, 9.5vw, 6.5rem);
-  line-height: 0.9;
+  font-size: clamp(2.5rem, 11vw, 3.5rem);
+  line-height: 0.95;
   letter-spacing: -0.035em;
   font-weight: 800;
   text-wrap: balance;
@@ -312,23 +330,29 @@ img {
 
 .landing__sub {
   margin: 0;
-  max-width: 46ch;
-  font-size: clamp(1rem, 2.1vw, 1.2rem);
-  line-height: 1.45;
+  max-width: 40ch;
+  font-size: 1.02rem;
+  line-height: 1.5;
   color: var(--ink-soft);
 }
 
 .landing__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+@media (min-width: 460px) {
+  .landing__actions {
+    grid-auto-flow: column;
+    justify-content: start;
+  }
 }
 
 .landing__foot {
   position: relative;
   z-index: 1;
-  padding: 1rem clamp(1.5rem, 5vw, 4rem) 1.75rem;
-  max-width: 1180px;
+  padding: 1rem 1.25rem 1.75rem;
+  max-width: var(--column);
   margin: 0 auto;
   width: 100%;
   font-size: 0.8rem;
@@ -507,7 +531,6 @@ img {
 .pieces {
   display: grid;
   gap: 1.25rem;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
 }
 
 .piece {
@@ -575,7 +598,10 @@ img {
 .field input,
 .field select {
   width: 100%;
+  min-height: 44px;
   padding: 0.6rem 0.65rem;
+  /* Under 16px, iOS Safari zooms the page on focus. */
+  font-size: 16px;
   border: 2px solid var(--ink);
   background: var(--paper);
   border-radius: 0;
@@ -710,7 +736,7 @@ img {
 
 .stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 0;
   border: var(--rule) solid var(--ink);
   background: var(--card);
@@ -719,12 +745,17 @@ img {
 }
 
 .stat {
-  padding: 0.85rem 1rem;
+  padding: 0.8rem 0.9rem;
   border-right: 2px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
 }
 
-.stat:last-child {
+.stat:nth-child(2n) {
   border-right: 0;
+}
+
+.stat:nth-child(n + 3) {
+  border-bottom: 0;
 }
 
 .stat__value {
@@ -783,7 +814,8 @@ img {
 
 .pill {
   flex: none;
-  padding: 0.42rem 0.85rem;
+  min-height: 38px;
+  padding: 0.42rem 0.9rem;
   border: 2px solid var(--ink);
   border-radius: 999px;
   background: var(--card);
@@ -815,13 +847,7 @@ img {
 .grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-}
-
-@media (min-width: 760px) {
-  .grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
+  gap: 0.85rem;
 }
 
 .tile {
@@ -938,7 +964,7 @@ img {
 
 .sheet__panel {
   position: relative;
-  width: min(560px, 100%);
+  width: min(var(--column), 100%);
   max-height: 90vh;
   overflow-y: auto;
   background: var(--card);
